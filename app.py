@@ -312,6 +312,41 @@ if not ml_review_points.empty:
             width="stretch",
             hide_index=True,
         )
+st.subheader("Export analysis")
+
+st.caption(
+    "Download the generated analytical results. "
+    "These files are decision-support outputs, not validated reports."
+)
+
+safe_batch_id = "".join(
+    character
+    if character.isalnum() or character in "-_"
+    else "_"
+    for character in str(assessment_batch_id)
+)
+
+download_columns = st.columns(2)
+
+download_columns[0].download_button(
+    label="Download process events",
+    data=process_events.to_csv(index=False).encode("utf-8"),
+    file_name=f"{safe_batch_id}_process_events.csv",
+    mime="text/csv",
+    key="download_process_events",
+    on_click="ignore",
+    width="stretch",
+)
+
+download_columns[1].download_button(
+    label="Download hourly detector consensus",
+    data=detector_consensus.to_csv(index=False).encode("utf-8"),
+    file_name=f"{safe_batch_id}_detector_consensus.csv",
+    mime="text/csv",
+    key="download_detector_consensus",
+    on_click="ignore",
+    width="stretch",
+)        
 
 
 st.subheader("Process trajectories")
