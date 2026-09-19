@@ -98,7 +98,7 @@ These results only describe the simulated demonstration. They do not prove that 
 
 ## Uploading data
 
-Users can upload a CSV file of up to 25 MB.
+Users can upload a CSV file of up to 5 MB.
 
 The dataset must contain:
 
@@ -160,4 +160,19 @@ Python, pandas, NumPy, scikit-learn, Plotly, Streamlit, pytest, GitHub Codespace
 
 ## License
 
-The project is provided under the terms contained in the `LICENSE` file.
+BIC is source-available under the PolyForm Noncommercial License 1.0.0 in
+`LICENSE`, with the copyright notice in `NOTICE`.
+
+The license permits noncommercial purposes and the other uses expressly
+listed in its terms. Commercial uses outside those permissions require a
+separate written agreement with the maintainer, L-bio-dev, unless already
+authorized by an applicable earlier license.
+
+Collaboration proposals are welcome. Open a GitHub Issue titled
+`Collaboration enquiry` or `Commercial licensing enquiry` with a brief,
+non-confidential description. Licensing details and the transition from MIT
+are documented in `docs/licensing.md`.
+
+The version at commit `cca8970cb19c91f22d662520e35ca39f98777bae` was published
+under MIT. Existing MIT permissions on previously released material remain
+valid; the original text is preserved in `LICENSES/MIT-legacy.txt`.
