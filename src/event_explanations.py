@@ -40,6 +40,7 @@ def explain_event(event: pd.Series, scores: pd.DataFrame) -> dict:
         & scores["elapsed_time_h"].between(start, end)
     ]
     notes = []
+    plain_notes = []
 
     for variable, variable_scores in flagged.groupby("variable", sort=True):
         z_scores = variable_scores["robust_z_score"]
@@ -65,6 +66,51 @@ def explain_event(event: pd.Series, scores: pd.DataFrame) -> dict:
             f"reference median: {float(peak['reference_median']):.4g})."
         )
 
+
+        units = {
+            "ph": "pH units",
+            "dissolved_oxygen_pct": "%",
+            "temperature_c": "°C",
+            "agitation_rpm": "rpm",
+            "feed_rate_ml_h": "mL/h",
+        }
+        value = float(peak["assessment_value"])
+        reference = float(peak["reference_median"])
+        unit = units.get(variable, "")
+        relative_note = ""
+        # Percent change is useful for flow and rpm, but misleading for pH
+        # (a logarithmic scale) and Celsius temperature (an arbitrary zero).
+        if variable in {"feed_rate_ml_h", "agitation_rpm"}:
+            if reference > 0 and value != reference:
+                relative_change = 100 * (value - reference) / reference
+                relative_direction = "lower" if relative_change < 0 else "higher"
+                relative_note = (
+                    f" That is about {abs(relative_change):.2g}% "
+                    f"{relative_direction} than the reference median."
+                )
+            elif reference == 0:
+                relative_note = (
+                    " A percentage comparison is not defined when "
+                    "the reference median is zero."
+                )
+
+        plain_direction = {
+            "above the reference median": "higher than the reference median",
+            "below the reference median": "lower than the reference median",
+            "on both sides of the reference median": (
+                "sometimes higher and sometimes lower than the reference median"
+            ),
+        }[direction]
+        plain_notes.append(
+            f"{label} was {plain_direction} at {variable_count} flagged "
+            f"{variable_noun}. "
+            f"For example, at {float(peak['elapsed_time_h']):g} h, "
+            f"the measured value was {value:.4g} {unit}, "
+            f"compared with a reference median of {reference:.4g} {unit} "
+            "at the same process time."
+            + relative_note
+        )
+
     if not notes:
         raise ValueError("No flagged measurements found for this event.")
 
@@ -78,6 +124,19 @@ def explain_event(event: pd.Series, scores: pd.DataFrame) -> dict:
     )
 
     return {
+        "plain_overview": (
+            f"{time_description}, the statistical comparison identified "
+            f"unusual values at {count} measured time "
+            + ("point." if count == 1 else "points.")
+        ),
+        "plain_notes": plain_notes,
+        "plain_agreement": (
+            "The second method, Isolation Forest, also marked "
+            f"{corroborated} of the {count} time "
+            + ("point" if count == 1 else "points")
+            + " as unusual. This shows how often the methods agree; "
+            "it does not establish the cause or whether the batch is acceptable."
+        ),
         "overview": overview,
         "variable_notes": notes,
         "agreement": agreement,

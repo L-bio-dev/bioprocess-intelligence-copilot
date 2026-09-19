@@ -26,3 +26,16 @@ Detector agreement is not a probability of process failure. The explanations
 do not identify causes, make batch-release decisions or describe behaviour
 between measurement times. Sparse sampling can leave long gaps in an event
 window; the window is not a claim about the true duration of a deviation.
+
+## Reading the explanation
+
+The main view uses measured values and reference medians, with units.
+For feed rate and agitation, it also shows the relative percentage difference
+at the selected example point, provided the reference median is positive.
+It does not compute percentage differences for pH or Celsius temperature.
+
+The examples are selected using each variable's largest absolute robust
+Z-score among the event's flagged measurements. They are not necessarily
+the lowest or highest raw values, because reference variability changes
+with process time. This selection and the scores are explained in an
+expandable statistical-details section.
