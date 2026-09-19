@@ -319,11 +319,28 @@ else:
     except (KeyError, TypeError, ValueError):
         st.info("The explanation is unavailable. Review the event table and plots.")
     else:
-        st.write(explanation["overview"])
-        for note in explanation["variable_notes"]:
+        st.write(explanation["plain_overview"])
+        st.caption(
+            "Reference median means the middle value across the reference "
+            "batches at the same process time."
+        )
+        for note in explanation["plain_notes"]:
             st.write(note)
-        st.write(explanation["agreement"])
-        st.caption(explanation["limitation"])
+        st.write(explanation["plain_agreement"])
+
+        with st.expander("Statistical details: how unusual were these values?"):
+            st.write(
+                "The robust Z-score measures the distance from the reference "
+                "median relative to the variability of the reference batches. "
+                "A larger absolute score means a larger relative deviation; "
+                "it is not a percentage. The examples above are the flagged "
+                "measurements with the highest absolute score for each variable "
+                "in this event."
+            )
+            for note in explanation["variable_notes"]:
+                st.write(note)
+            st.write(explanation["agreement"])
+            st.caption(explanation["limitation"])
 
 
 ml_review_points = detector_consensus[
