@@ -6,7 +6,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.anomaly_detection import score_assessment_batch
+from src.anomaly_detection import (
+    ROBUST_Z_THRESHOLD,
+    score_assessment_batch,
+)
 from src.data_validation import validate_dataset
 from src.event_explanations import explain_event
 from src.input_limits import (
@@ -350,12 +353,36 @@ else:
 
         with st.expander("Statistical details: how unusual were these values?"):
             st.write(
-                "The robust Z-score measures the distance from the reference "
-                "median relative to the variability of the reference batches. "
-                "A larger absolute score means a larger relative deviation; "
-                "it is not a percentage. The examples above are the flagged "
-                "measurements with the highest absolute score for each variable "
-                "in this event."
+                "The robust Z-score compares each measurement with the reference "
+                "batches at the same process time. It is calculated as "
+                "(measured value - reference median) divided by the reference "
+                "variability scale."
+            )
+            st.write(
+                "**When is a measurement flagged?** The robust Z-score detector "
+                f"flags it when the absolute score is **{ROBUST_Z_THRESHOLD:g} "
+                "or higher**. This includes scores of "
+                f"**-{ROBUST_Z_THRESHOLD:g} or lower** and "
+                f"**+{ROBUST_Z_THRESHOLD:g} or higher**. "
+                "A negative score means below the reference median; "
+                "a positive score means above it."
+            )
+            st.write(
+                f"The threshold means a distance of at least {ROBUST_Z_THRESHOLD:g} "
+                "reference variability-scale units from the median. "
+                f"It does **not** mean a difference of {ROBUST_Z_THRESHOLD:g} "
+                f"mL/h, {ROBUST_Z_THRESHOLD:g} pH units or {ROBUST_Z_THRESHOLD:g}%. "
+                "The raw difference needed to trigger a flag therefore depends "
+                "on the variability of the references for that variable and time."
+            )
+            st.caption(
+                "This is a prototype detection setting, not a validated process "
+                "acceptance limit. Isolation Forest uses a separate score and "
+                "a threshold derived from its reference scores."
+            )
+            st.write(
+                "The examples below are the flagged measurements with the "
+                "highest absolute robust Z-score for each variable in this event."
             )
             for note in explanation["variable_notes"]:
                 st.write(note)
