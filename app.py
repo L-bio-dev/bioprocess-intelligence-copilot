@@ -88,6 +88,22 @@ data_source = st.sidebar.radio(
 uploaded_file = None
 
 if data_source == "Upload CSV":
+    st.sidebar.download_button(
+        label="Download example CSV",
+        data=DEMO_DATA_PATH.read_bytes(),
+        file_name="bioprocess_example.csv",
+        mime="text/csv",
+        key="download_example_csv",
+        on_click="ignore",
+        width="stretch",
+    )
+
+    st.sidebar.caption(
+        "This synthetic example contains the reference batches and "
+        "one assessment batch used in the demo. Download it, then "
+        "upload it below to try the analysis."
+    )
+
     uploaded_file = st.sidebar.file_uploader(
         "Upload a CSV following the documented data contract",
         type=["csv"],
