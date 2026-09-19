@@ -8,6 +8,7 @@ import streamlit as st
 
 from src.anomaly_detection import score_assessment_batch
 from src.data_validation import validate_dataset
+from src.event_explanations import explain_event
 from src.input_limits import (
     MAX_UPLOAD_MB,
     UploadLimitError,
@@ -300,6 +301,29 @@ else:
         width="stretch",
         hide_index=True,
     )
+
+
+    st.subheader("Event explanation")
+
+    selected_event_id = st.selectbox(
+        "Choose an event to understand its results",
+        options=process_events["event_id"].tolist(),
+        key="event_explanation_selector",
+    )
+    selected_event = process_events.loc[
+        process_events["event_id"] == selected_event_id
+    ].iloc[0]
+
+    try:
+        explanation = explain_event(selected_event, interpretable_scores)
+    except (KeyError, TypeError, ValueError):
+        st.info("The explanation is unavailable. Review the event table and plots.")
+    else:
+        st.write(explanation["overview"])
+        for note in explanation["variable_notes"]:
+            st.write(note)
+        st.write(explanation["agreement"])
+        st.caption(explanation["limitation"])
 
 
 ml_review_points = detector_consensus[
