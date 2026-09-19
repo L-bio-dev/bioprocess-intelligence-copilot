@@ -69,8 +69,14 @@ st.image(
 )
 
 st.caption(
-    "An educational decision-support prototype for comparing "
-    "an assessment batch with reference-batch trajectories."
+    "BIC is an educational prototype that checks data quality, compares a batch "
+    "with reference trajectories and explains unusual process behaviour "
+    "to support engineering review."
+)
+st.caption(
+    "Developed with AI assistance. "
+    "[Explore the code and documentation on GitHub]"
+    "(https://github.com/L-bio-dev/bioprocess-intelligence-copilot)."
 )
 
 st.warning(
@@ -593,51 +599,81 @@ st.caption(
 )
 
 
-st.subheader("Detector benchmark")
+st.subheader("Evaluation, limits and next steps")
 
-model_evaluation = pd.read_csv(MODEL_EVALUATION_PATH)
-
-evaluation_table = model_evaluation[
-    ["model", "precision", "recall", "f1_score"]
-].copy()
-
-for metric in ["precision", "recall", "f1_score"]:
-    evaluation_table[metric] = evaluation_table[metric].map(
-        lambda value: f"{value * 100:.1f}%"
-    )
-
-evaluation_table = evaluation_table.rename(
-    columns={
-        "model": "Detector",
-        "precision": "Precision",
-        "recall": "Recall",
-        "f1_score": "F1 score",
-    }
+st.write(
+    "**Evidence:** evaluated on 30 synthetic datasets across six scenarios. "
+    "Automated tests check data validation, analysis and explanations."
+)
+st.write(
+    "**Current limits:** small deviations and gradual drift can be missed. "
+    "Performance varies with reference variability, and Isolation Forest "
+    "produced substantial false alarms in the wider evaluation. "
+    "Performance on real manufacturing data has not been established."
+)
+st.write(
+    "**Next improvements:** near-term work is planned to reduce false alarms, "
+    "improve sensitivity to subtle changes and evaluate more process conditions. "
+    "The goal is a more reliable tool applicable to a wider range of bioprocesses."
+)
+st.caption(
+    "These findings describe the saved synthetic evaluation, not the performance "
+    "of the analysis on your uploaded CSV."
+)
+st.markdown(
+    "[See the scenarios, results and limitations on GitHub]"
+    "(https://github.com/L-bio-dev/bioprocess-intelligence-copilot/"
+    "blob/main/docs/scenario_evaluation.md)"
 )
 
-st.dataframe(
-    evaluation_table,
-    width="stretch",
-    hide_index=True,
-)
-
-if data_source == "Synthetic demonstration":
-    benchmark_message = (
-        "Performance is measured against known anomalies in the "
-        "current synthetic demonstration dataset."
+with st.expander("Original demo results — one synthetic batch"):
+    st.caption(
+        "These results cover only the original demonstration. "
+        "They do not represent performance across the wider evaluation."
     )
-else:
-    benchmark_message = (
-        "These metrics come from the built-in synthetic benchmark, "
-        "not from the uploaded dataset, which has no supplied "
-        "ground truth."
+    model_evaluation = pd.read_csv(MODEL_EVALUATION_PATH)
+
+    evaluation_table = model_evaluation[
+        ["model", "precision", "recall", "f1_score"]
+    ].copy()
+
+    for metric in ["precision", "recall", "f1_score"]:
+        evaluation_table[metric] = evaluation_table[metric].map(
+            lambda value: f"{value * 100:.1f}%"
+        )
+
+    evaluation_table = evaluation_table.rename(
+        columns={
+            "model": "Detector",
+            "precision": "Precision",
+            "recall": "Recall",
+            "f1_score": "F1 score",
+        }
     )
 
-st.info(
-    benchmark_message
-    + " It does not represent validated performance on real "
-    "manufacturing data."
-)
+    st.dataframe(
+        evaluation_table,
+        width="stretch",
+        hide_index=True,
+    )
+
+    if data_source == "Synthetic demonstration":
+        benchmark_message = (
+            "Performance is measured against known anomalies in the "
+            "current synthetic demonstration dataset."
+        )
+    else:
+        benchmark_message = (
+            "These metrics come from the built-in synthetic benchmark, "
+            "not from the uploaded dataset, which has no supplied "
+            "ground truth."
+        )
+
+    st.info(
+        benchmark_message
+        + " It does not represent validated performance on real "
+        "manufacturing data."
+    )
 
 
 st.subheader("Data preview")
