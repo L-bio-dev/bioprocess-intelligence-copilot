@@ -1,0 +1,30 @@
+{
+  "seeds": [
+    1001,
+    1002,
+    1003,
+    1004,
+    1005
+  ],
+  "scenarios": [
+    "no_injected_anomalies",
+    "clear_deviations",
+    "mild_deviations",
+    "gradual_feed_drift",
+    "higher_variability_no_anomalies",
+    "higher_variability_clear_deviations"
+  ],
+  "reference_batches_per_run": 20,
+  "assessment_batches_per_run": 1,
+  "time_grid": "0 to 240 hours inclusive, one-hour intervals",
+  "robust_z_threshold": 5.0,
+  "reference_score_quantile": 0.995,
+  "isolation_forest_seed": 42,
+  "python": "3.12.1",
+  "packages": {
+    "numpy": "2.5.2",
+    "pandas": "3.0.5",
+    "scikit-learn": "1.9.0"
+  },
+  "metric_units": "Ratios from 0 to 1; blank CSV cells mean undefined."
+}
