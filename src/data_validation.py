@@ -6,6 +6,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from src.input_limits import resource_limit_errors
+
 
 MINIMUM_REFERENCE_BATCHES = 10
 
@@ -51,6 +53,11 @@ def validate_dataset(data: pd.DataFrame) -> ValidationResult:
 
     if data.empty:
         result.errors.append("The dataset is empty.")
+        return result
+
+    limit_errors = resource_limit_errors(data)
+    if limit_errors:
+        result.errors.extend(limit_errors)
         return result
 
     missing_columns = [

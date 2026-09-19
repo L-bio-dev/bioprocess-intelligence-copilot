@@ -8,6 +8,11 @@ import streamlit as st
 
 from src.anomaly_detection import score_assessment_batch
 from src.data_validation import validate_dataset
+from src.input_limits import (
+    MAX_UPLOAD_MB,
+    UploadLimitError,
+    read_uploaded_csv,
+)
 from src.event_summary import (
     create_hourly_consensus,
     summarize_process_events,
@@ -86,7 +91,7 @@ if data_source == "Upload CSV":
     uploaded_file = st.sidebar.file_uploader(
         "Upload a CSV following the documented data contract",
         type=["csv"],
-        max_upload_size=25,
+        max_upload_size=MAX_UPLOAD_MB,
     )
 
     st.sidebar.caption(
@@ -108,7 +113,10 @@ elif uploaded_file is None:
 
 else:
     try:
-        data = pd.read_csv(uploaded_file)
+        data = read_uploaded_csv(uploaded_file)
+    except UploadLimitError as error:
+        st.error(str(error))
+        st.stop()
     except (
         pd.errors.EmptyDataError,
         pd.errors.ParserError,
@@ -199,12 +207,11 @@ try:
             detector_consensus
         )
 
-except (KeyError, TypeError, ValueError) as error:
+except (KeyError, TypeError, ValueError):
     st.error(
         "The dataset passed structural validation, but the "
         "analysis could not be completed."
     )
-    st.caption(f"Analysis detail: {error}")
     st.stop()
 
 
