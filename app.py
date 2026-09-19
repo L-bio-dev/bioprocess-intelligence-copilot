@@ -236,8 +236,9 @@ st.divider()
 st.subheader("Process intelligence")
 
 st.caption(
-    "The interpretable detector identifies variable-level deviations. "
-    "Isolation Forest provides independent multivariate corroboration."
+    "Two methods compare the assessment batch with the reference batches: "
+    "robust Z-score checks each variable separately; Isolation Forest "
+    "looks for unusual combinations of variables."
 )
 
 status_counts = detector_consensus[
@@ -250,20 +251,39 @@ intelligence_columns[0].metric(
     "Detected events",
     len(process_events),
 )
+intelligence_columns[0].caption(
+    "Groups of consecutive measured time points flagged by robust Z-score."
+)
 
 intelligence_columns[1].metric(
     "Corroborated points",
     int(status_counts.get("corroborated", 0)),
+)
+intelligence_columns[1].caption(
+    "Time points flagged by both robust Z-score and Isolation Forest."
 )
 
 intelligence_columns[2].metric(
     "Interpretable-only",
     int(status_counts.get("interpretable_only", 0)),
 )
+intelligence_columns[2].caption(
+    "Time points flagged by robust Z-score only."
+)
 
 intelligence_columns[3].metric(
     "ML-only review",
     int(status_counts.get("ml_only_review", 0)),
+)
+intelligence_columns[3].caption(
+    "Time points flagged by Isolation Forest only, shown for review."
+)
+
+st.caption(
+    "A time point is counted once in one of the three point categories, "
+    "even if several variables are flagged. Only robust Z-score flags "
+    "form the events listed below. Agreement between methods does not "
+    "establish a cause or whether the batch is acceptable."
 )
 
 
