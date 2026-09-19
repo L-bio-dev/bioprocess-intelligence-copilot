@@ -100,77 +100,57 @@ def group_consecutive_hours(
 def summarize_process_events(
     consensus: pd.DataFrame,
 ) -> pd.DataFrame:
-    """Convert interpretable flags into process-level events."""
+    """Group flagged consecutive observations, preserving their actual times."""
 
-    robust_hours = set(
-        consensus.loc[
-            consensus["robust_anomaly"],
-            "elapsed_time_h",
-        ].astype(int)
-    )
+    columns = [
+        "event_id",
+        "start_time_h",
+        "end_time_h",
+        "flagged_time_points",
+        "affected_variables",
+        "ml_corroborated_time_points",
+        "ml_corroboration_pct",
+        "maximum_robust_score",
+    ]
+    if consensus.empty:
+        return pd.DataFrame(columns=columns)
 
-    intervals = group_consecutive_hours(robust_hours)
+    ordered = consensus.sort_values("elapsed_time_h").copy()
+    flags = ordered["robust_anomaly"].astype(bool)
+    # Each normal observation breaks an event. ML-only flags cannot start one.
+    ordered["_event_group"] = flags.ne(flags.shift(fill_value=False)).cumsum()
+    flagged = ordered.loc[flags]
     events = []
 
-    for event_number, (start_time, end_time) in enumerate(
-        intervals,
-        start=1,
+    for event_number, (_, event_data) in enumerate(
+        flagged.groupby("_event_group", sort=True), start=1
     ):
-        event_data = consensus[
-            consensus["elapsed_time_h"].between(
-                start_time,
-                end_time,
-            )
-        ]
-
         variables = set()
-
         for value in event_data["flagged_variables"]:
             if value:
                 variables.update(value.split("; "))
 
-        flagged_time_points = int(
-            event_data["robust_anomaly"].sum()
-        )
-
-        ml_corroborated_points = int(
-            (
-                event_data["robust_anomaly"]
-                & event_data["ml_anomaly"]
-            ).sum()
-        )
-
-        ml_corroboration_pct = (
-            100
-            * ml_corroborated_points
-            / flagged_time_points
-        )
+        flagged_time_points = len(event_data)
+        ml_corroborated_points = int(event_data["ml_anomaly"].sum())
 
         events.append(
             {
                 "event_id": f"EVENT_{event_number:03d}",
-                "start_time_h": start_time,
-                "end_time_h": end_time,
+                "start_time_h": float(event_data["elapsed_time_h"].iloc[0]),
+                "end_time_h": float(event_data["elapsed_time_h"].iloc[-1]),
                 "flagged_time_points": flagged_time_points,
-                "affected_variables": "; ".join(
-                    sorted(variables)
-                ),
-                "ml_corroborated_time_points": (
-                    ml_corroborated_points
-                ),
+                "affected_variables": "; ".join(sorted(variables)),
+                "ml_corroborated_time_points": ml_corroborated_points,
                 "ml_corroboration_pct": round(
-                    ml_corroboration_pct,
-                    1,
+                    100 * ml_corroborated_points / flagged_time_points, 1
                 ),
                 "maximum_robust_score": float(
-                    event_data[
-                        "maximum_robust_score"
-                    ].max()
+                    event_data["maximum_robust_score"].max()
                 ),
             }
         )
 
-    return pd.DataFrame(events)
+    return pd.DataFrame(events, columns=columns)
 
 
 def main() -> None:
